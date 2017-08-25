@@ -14,7 +14,5 @@ async def test_httpbin_fixture_attributes(httpbin):
 
 async def test_httpbin_is_running(httpbin):
     async with aiohttp.ClientSession() as session:
-        import asyncio
-        await asyncio.sleep(30)
         async with session.get(httpbin.url / "status/418") as resp:
             assert resp.status == 418
