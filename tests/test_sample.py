@@ -1,4 +1,11 @@
 # Sample Test passing with nose and pytest
 
+import aionap
+
+
 def test_pass():
-    assert True, "dummy sample test"
+    assert aionap.foo() == "bar"
+
+
+def test_fail():
+    assert False
