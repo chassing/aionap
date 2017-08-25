@@ -1,10 +1,9 @@
 
 import aiohttp
 
-from urllib.parse import urljoin
-
 from . import exceptions
 from .serialize import Serializer
+from .utils import urljoin
 
 
 __all__ = ["Resource", "API"]
