@@ -11,17 +11,14 @@ setuptools.setup(
     description="Python Asyncio REST Client",
     long_description=open('README.rst').read(),
 
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=['docs', 'tests*']),
 
-    install_requires=[],
+    install_requires=open('requirements.txt').readlines(),
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 )
