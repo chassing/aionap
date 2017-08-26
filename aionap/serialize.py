@@ -61,7 +61,12 @@ class JsonSerializer(BaseSerializer):
 class YamlSerializer(BaseSerializer):
     """YAML."""
 
-    content_types = ["text/yaml"]
+    content_types = [
+        "text/yaml",
+        'text/x-yaml',
+        'application/yaml',
+        'application/x-yaml',
+    ]
     key = "yaml"
 
     def loads(self, data):

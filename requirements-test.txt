@@ -4,3 +4,6 @@ pytest-asyncio
 # httpbin
 gunicorn
 httpbin
+
+# formater
+pyyaml
