@@ -139,6 +139,12 @@ async def test_send_data(httpbin, format, http_send_method):
         assert serializer.dumps(data) == resp['data']
 
 
-async def test_send_files(httpbin):
+async def test_send_files(httpbin, tmpdir, http_send_method):
     """POST and PUT files."""
-    assert "TODO" == "DONE"
+    TEST_STR = "TEST TEST TEST"
+    tmpfile = tmpdir.join("tmp.txt")
+    tmpfile.write(TEST_STR)
+    api = aionap.API(httpbin.url)
+    async with getattr(api, http_send_method) as resource:
+        resp = await getattr(resource, http_send_method)(file=open(tmpfile, 'rb'))
+        assert TEST_STR == resp['files']['file']

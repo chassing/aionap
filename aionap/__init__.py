@@ -73,17 +73,20 @@ class Resource(AttributesMixin):
         """Asyncio with exit."""
         self._store["session"].close()
 
-    async def _request(self, method, data=None, files=None, params=None):
+    async def _request(self, method, data=None, file=None, params=None):
         serializer = self._store["serializer"]
         url = self.url
 
-        assert files is None  # TODO
         headers = {"accept": serializer.get_content_type()}
 
-        if not files:
+        if not file:
             if data is not None:
                 headers["content-type"] = serializer.get_content_type()
                 data = serializer.dumps(data)
+        else:
+            if data is None:
+                data = {}
+            data['file'] = file
 
         resp = await self._store["session"].request(method, url, data=data, params=params, headers=headers)
         self._ = resp
@@ -126,8 +129,8 @@ class Resource(AttributesMixin):
 
         return decoded
 
-    async def _do_verb_request(self, verb, data=None, files=None, params=None):
-        resp = await self._request(verb, data=data, files=files, params=params)
+    async def _do_verb_request(self, verb, data=None, file=None, params=None):
+        resp = await self._request(verb, data=data, file=file, params=params)
         return await self._process_response(resp)
 
     def as_raw(self):
@@ -138,14 +141,18 @@ class Resource(AttributesMixin):
         """GET request."""
         return await self._do_verb_request("GET", params=kwargs)
 
-    async def post(self, data=None, files=None, **kwargs):
-        return await self._do_verb_request("POST", data=data, files=files, params=kwargs)
+    async def post(self, data=None, file=None, **kwargs):
+        """POST.
 
-    async def patch(self, data=None, files=None, **kwargs):
-        return await self._do_verb_request("PATCH", data=data, files=files, params=kwargs)
+        file: file-like object
+        """
+        return await self._do_verb_request("POST", data=data, file=file, params=kwargs)
 
-    async def put(self, data=None, files=None, **kwargs):
-        return await self._do_verb_request("PUT", data=data, files=files, params=kwargs)
+    async def patch(self, data=None, file=None, **kwargs):
+        return await self._do_verb_request("PATCH", data=data, file=file, params=kwargs)
+
+    async def put(self, data=None, file=None, **kwargs):
+        return await self._do_verb_request("PUT", data=data, file=file, params=kwargs)
 
     async def delete(self, **kwargs):
         return await self._do_verb_request("DELETE", params=kwargs)
