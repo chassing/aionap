@@ -65,10 +65,19 @@ class Resource(AttributesMixin):
 
         return self._get_resource(**kwargs)
 
+    async def __aenter__(self):
+        """Asyncio with enter."""
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        """Asyncio with exit."""
+        self._store["session"].close()
+
     async def _request(self, method, data=None, files=None, params=None):
         serializer = self._store["serializer"]
         url = self.url
 
+        assert files is None  # TODO
         headers = {"accept": serializer.get_content_type()}
 
         if not files:
@@ -76,49 +85,38 @@ class Resource(AttributesMixin):
                 headers["content-type"] = serializer.get_content_type()
                 data = serializer.dumps(data)
 
-        resp = self._store["session"].request(method, url, data=data, params=params, files=files, headers=headers)
-
-        if 400 <= resp.status_code <= 499:
-            exception_class = exceptions.HttpNotFoundError if resp.status_code == 404 else exceptions.HttpClientError
-            raise exception_class("Client Error %s: %s" % (resp.status_code, url), response=resp, content=resp.content)
-        elif 500 <= resp.status_code <= 599:
-            raise exceptions.HttpServerError("Server Error %s: %s" % (resp.status_code, url), response=resp, content=resp.content)
-
+        resp = await self._store["session"].request(method, url, data=data, params=params, headers=headers)
         self._ = resp
+
+        if 400 <= resp.status <= 499:
+            exception_class = exceptions.HttpNotFoundError if resp.status == 404 else exceptions.HttpClientError
+            raise exception_class("Client Error %s: %s" % (resp.status, url), response=resp, content=resp.content)
+        elif 500 <= resp.status <= 599:
+            raise exceptions.HttpServerError("Server Error %s: %s" % (resp.status, url), response=resp, content=resp.content)
 
         return resp
 
-    def _handle_redirect(self, resp, **kwargs):
-        # @@@ Hacky, see description in __call__
-        resource_obj = self(url_override=resp.headers["location"])
-        return resource_obj.get(**kwargs)
-
-    def _try_to_serialize_response(self, resp):
+    async def _try_to_serialize_response(self, resp):
         s = self._store["serializer"]
-        if resp.status_code in [204, 205]:
+        if resp.status in [204, 205]:
             return
 
-        if resp.headers.get("content-type", None) and resp.content:
+        content = await resp.read()
+        if resp.headers.get("content-type", None) and content:
             content_type = resp.headers.get("content-type").split(";")[0].strip()
 
             try:
+                # get serializer
                 stype = s.get_serializer(content_type=content_type)
             except exceptions.SerializerNotAvailable:
-                return resp.content
+                return content
+            # serialize content
+            return stype.loads(content)
+        return content
 
-            if type(resp.content) == bytes:
-                try:
-                    encoding = requests.utils.guess_json_utf(resp.content)
-                    return stype.loads(resp.content.decode(encoding))
-                except:
-                    return resp.content
-            return stype.loads(resp.content)
-        else:
-            return resp.content
-
-    def _process_response(self, resp):
-        if 200 <= resp.status_code <= 299:
-            decoded = self._try_to_serialize_response(resp)
+    async def _process_response(self, resp):
+        if 200 <= resp.status <= 299:
+            decoded = await self._try_to_serialize_response(resp)
         else:
             # @@@ We should probably do some sort of error here? (Is this even possible?)
             decoded = None
@@ -130,7 +128,7 @@ class Resource(AttributesMixin):
 
     async def _do_verb_request(self, verb, data=None, files=None, params=None):
         resp = await self._request(verb, data=data, files=files, params=params)
-        return self._process_response(resp)
+        return await self._process_response(resp)
 
     def as_raw(self):
         self._store["raw"] = True
@@ -140,30 +138,23 @@ class Resource(AttributesMixin):
         """GET request."""
         return await self._do_verb_request("GET", params=kwargs)
 
-    def options(self, **kwargs):
-        return self._do_verb_request("OPTIONS", params=kwargs)
+    async def post(self, data=None, files=None, **kwargs):
+        return await self._do_verb_request("POST", data=data, files=files, params=kwargs)
 
-    def head(self, **kwargs):
-        return self._do_verb_request("HEAD", params=kwargs)
+    async def patch(self, data=None, files=None, **kwargs):
+        return await self._do_verb_request("PATCH", data=data, files=files, params=kwargs)
 
-    def post(self, data=None, files=None, **kwargs):
-        return self._do_verb_request("POST", data=data, files=files, params=kwargs)
+    async def put(self, data=None, files=None, **kwargs):
+        return await self._do_verb_request("PUT", data=data, files=files, params=kwargs)
 
-    def patch(self, data=None, files=None, **kwargs):
-        return self._do_verb_request("PATCH", data=data, files=files, params=kwargs)
+    async def delete(self, **kwargs):
+        return await self._do_verb_request("DELETE", params=kwargs)
 
-    def put(self, data=None, files=None, **kwargs):
-        return self._do_verb_request("PUT", data=data, files=files, params=kwargs)
+    # async def options(self, **kwargs):
+    #     return await self._do_verb_request("OPTIONS", params=kwargs)
 
-    def delete(self, **kwargs):
-        resp = self._request("DELETE", params=kwargs)
-        if 200 <= resp.status_code <= 299:
-            if resp.status_code == 204:
-                return True
-            else:
-                return True  # @@@ Should this really be True?
-        else:
-            return False
+    # async def head(self, **kwargs):
+    #     return await self._do_verb_request("HEAD", params=kwargs)
 
     @property
     def url(self):
@@ -171,7 +162,7 @@ class Resource(AttributesMixin):
         url = self._store["base_url"]
 
         if self._store["append_slash"] and not url.endswith("/"):
-            url = url + "/"
+            url += "/"
 
         return url
 
@@ -184,7 +175,7 @@ class API(AttributesMixin):
 
     resource_class = Resource
 
-    def __init__(self, base_url=None, auth=None, format=None, append_slash=True, session=None, serializer=None, raw=False):
+    def __init__(self, base_url=None, auth=None, format=None, append_slash=False, session=None, serializer=None, raw=False):
         """Init."""
         if serializer is None:
             serializer = Serializer(default=format)
@@ -209,6 +200,9 @@ class API(AttributesMixin):
         # Do some Checks for Required Values
         if self._store.get("base_url") is None:
             raise exceptions.ImproperlyConfigured("base_url is required")
+
+    async def close(self):
+        await self._store['session'].close()
 
     def _get_resource(self, **kwargs):
         return self.resource_class(**kwargs)
