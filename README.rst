@@ -49,7 +49,7 @@ Usage
     async with api.books as resource:
         response = await resource.get()
 
-For more see the documenation_ and the `test/test_demo_api.py` example file.
+For more see the documenation_, the `test/test_demo_api.py` file or the `example` directory.
 
 
 Installation
