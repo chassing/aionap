@@ -1,6 +1,6 @@
 from . import exceptions
 
-_SERIALIZERS = {
+SERIALIZERS = {
     "json": True,
     "yaml": True,
 }
@@ -8,12 +8,12 @@ _SERIALIZERS = {
 try:
     import json
 except ImportError:
-    _SERIALIZERS["json"] = False
+    SERIALIZERS["json"] = False
 
 try:
     import yaml
 except ImportError:
-    _SERIALIZERS["yaml"] = False
+    SERIALIZERS["yaml"] = False
 
 
 class BaseSerializer:
@@ -84,10 +84,10 @@ class Serializer:
     def __init__(self, default=None, serializers=None):
         """Init."""
         if default is None:
-            default = "json" if _SERIALIZERS["json"] else "yaml"
+            default = "json" if SERIALIZERS["json"] else "yaml"
 
         if serializers is None:
-            serializers = [x() for x in [JsonSerializer, YamlSerializer] if _SERIALIZERS[x.key]]
+            serializers = [x() for x in [JsonSerializer, YamlSerializer] if SERIALIZERS[x.key]]
 
         if not serializers:
             raise exceptions.SerializerNoAvailable("There are no Available Serializers.")

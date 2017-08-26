@@ -125,9 +125,16 @@ async def test_all_http_status_codes(httpbin, code):
         assert resource._.status == code
 
 
-async def test_send_data(httpbin):
-    """POST and PUT data."""
-    assert "TODO" == "DONE"
+@pytest.mark.parametrize("format", [f for f in aionap.serialize.SERIALIZERS])
+async def test_post_data(httpbin, format):
+    data = {'foo': 'bar'}
+    serializer = aionap.serialize.Serializer().get_serializer(name=format)
+    api = aionap.API(httpbin.url, format=format)
+    async with api.post as resource:
+        resp = await resource.post(data=data)
+        assert format in resp['headers'].get('Accept')
+        assert format in resp['headers'].get('Content-Type')
+        assert serializer.dumps(data) == resp['data']
 
 
 async def test_send_files(httpbin):
