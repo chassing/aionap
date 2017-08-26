@@ -2,7 +2,7 @@ language: python
 sudo: false
 
 python:
-  - "3.6"
+  - '3.6'
 
 install:
   - travis_retry pip install tox-travis
@@ -14,7 +14,7 @@ deploy:
   provider: pypi
   user: chassing
   password:
-    secure: mTnrIsWCUZzPtCuk/rg+KYhMWCaHAjPe+tm2aAg6QYCY/OU8i8Au/cIwONa3JBDkQrB/NZa7gaOuxVMgcmaPEBcgzqhg2Er4wsi7voS/yn5suZ4ulIsYfxOB0+3i08jCA15IqXCaCJvfiE2j3AG6e8gs8QUTbciiLwZHdJyRE21HCI6d4cPIUa79FTAw0cgY/CHi4Bm8oCy3huZYgwrD6/X2JfZhYLwJBHkQaW9zBOhYGz31QLwDYYIIw19YcgDzkp+xXq0nIhfRanJgpRpS7U937ugO8bksNaQTq9NW6j8KFrHDwXQlE4q/J5XNqvOdoCAR6VE8/kbP67mgSG1ix7V8NmVP8aPJmm6cjiU9blJGrponuokIZqzFPUf3FETQ6uaJ69RgEALc/iisr7EyDmNzWhGJyz7D0oWh0SbZc8caQhl000wHA0pIKCd0ygVeZMmeNCpayMX5xucJcYhGbLoj61yttI/VoooRiMxwPKqYIMM/1ePqcruNpehAa+7kUxXR5iTN3Ep2xHG7fNduCL2fy47u7NW3yPZIi3r5dEHYLXwHLsI4oCCm4xkUXzakiGeY1FApO3k98LCEaj6kW2P0ykZf/hAJ7P+d6igN/vSo4hh3VtEnwhsDBIUDQ7+2pZ64tnwBWS20aVTjaDJGfuqPeoiQv0Jjurl1ZoETt3Y=
+    secure: in2DSK8c0lMGWC324zksClImfxJ3g6AC2Meu/5O0GbjnBemDahfgNwlCWoVoFKBeu2UoyVCOa2vOHkMAbuaUi0rci1YjnOqk6eG2i4iTZKAKx1r6stxnh6ocHbWY2VHNBfqw/KyRN3n5HeGwAcQWmIJL7sRr8kVI1GHd7nviZzU/dC+TQSZktiLWFS1smzfcGulgIpAER2rdg1LVAXn//+1XeXPu/Cd0QTNUw48UBeKEbkhGiTWpNKSkFxADVS12LIsWB4nHnHEQCRokI24x/WVyDxRcWF8sJED4Cf2TbAbqwhVPnEfBWYlRf3afM3EzZgbvQjBul5wcWSh60BjyckxfgYkVVcW3UadHi+ekOl7/tuyfPNLEM+5Y2DccZbpEHlChBhy63+JpURlzL1zimN63yFEwODO/jrONSJpcMGLy81zlI6T5WoURT5BGLZxacscLH+yOVyw9khUtd7bBNJK/3iiyF9gexiabpimU37ldBiFB0OW4G1tYwT/Y6CsetLpCrT/G5fGQ6rU7gCq3fyNgB+fX3N07yJUSVlUQQ0XwVataGOTdhHJFcLJVWv6uHnw1P35uiQIYzJbft3Yn/xHrzufBHtWATpkYVDy+uuKDj8pYDfZgTjDEdz9SC+/5KtavhZZT+29Fh5nG+kDIt4mMGqJVkHGjVyDWs25sqb4=
   on:
     tags: true
     distributions: sdist bdist_wheel
