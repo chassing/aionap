@@ -48,7 +48,7 @@ def tcp_port():
 
 @pytest.yield_fixture(scope='session')
 def httpbin(tcp_port):
-    httpbin_cmd = f"python -m httpbin.core --port={tcp_port}"
+    httpbin_cmd = f"gunicorn httpbin:app --bind 127.0.0.1:{tcp_port} --log-level DEBUG"
     httpbin_proc = subprocess.Popen(httpbin_cmd.split(" "))
     host = "localhost"
     port = tcp_port
@@ -59,3 +59,7 @@ def httpbin(tcp_port):
     yield Server(url, host, port)
     # kill httpbin
     httpbin_proc.kill()
+
+# @pytest.fixture(scope='session')
+# def httpbin(tcp_port):
+#     return Server(Url("http://eu.httpbin.org"), "eu.httpbin.org", 80)
