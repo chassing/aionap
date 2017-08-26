@@ -5,36 +5,36 @@ import pytest
 pytestmark = pytest.mark.asyncio
 
 
-async def test_plain_methods(httpbin):
+@pytest.fixture(params=[f for f in aionap.serialize.SERIALIZERS])
+def format(request):
+    return request.param
+
+
+@pytest.fixture(params=['get', 'post', 'put', 'patch', 'delete'])
+def http_method(request):
+    return request.param
+
+
+@pytest.fixture(params=['post', 'put', 'patch'])
+def http_send_method(request):
+    return request.param
+
+
+async def test_plain_methods(httpbin, http_method):
     """Just the plain http methods without data, params etc."""
     api = aionap.API(httpbin.url, append_slash=False)
     async with api.anything as resource:
-        resp = await resource.get()
-        assert resp['method'] == 'GET'
-        resp = await resource.post()
-        assert resp['method'] == 'POST'
-        resp = await resource.patch()
-        assert resp['method'] == 'PATCH'
-        resp = await resource.put()
-        assert resp['method'] == 'PUT'
-        resp = await resource.delete()
-        assert resp['method'] == 'DELETE'
+        # resource.get()
+        resp = await getattr(resource, http_method)()
+        assert resp['method'] == http_method.upper()
 
 
-async def test_params(httpbin):
+async def test_params(httpbin, http_method):
     """Just the plain http methods without data, params etc."""
     api = aionap.API(httpbin.url, append_slash=False)
     params = {'key': 'value', 'key2': 'value2'}
     async with api.anything as resource:
-        resp = await resource.get(**params)
-        assert resp['args'] == params
-        resp = await resource.post(**params)
-        assert resp['args'] == params
-        resp = await resource.patch(**params)
-        assert resp['args'] == params
-        resp = await resource.put(**params)
-        assert resp['args'] == params
-        resp = await resource.delete(**params)
+        resp = await getattr(resource, http_method)(**params)
         assert resp['args'] == params
 
 
@@ -65,10 +65,13 @@ async def test_deep_nested_resource_urls_with_name(httpbin):
 
 async def test_close(httpbin):
     api = aionap.API(httpbin.url)
-    resp = await api.anything.resource.get()
-    assert resp['method'] == 'GET'
-    assert resp['data'] == ''
     await api.close()
+    # should raise closed exception
+    with pytest.raises(RuntimeError):
+        await api.anything.resource.get()
+    with pytest.raises(RuntimeError):
+        async with api.anything as resource:
+            await resource.get()
 
 
 async def test_append_slash(httpbin):
@@ -125,13 +128,12 @@ async def test_all_http_status_codes(httpbin, code):
         assert resource._.status == code
 
 
-@pytest.mark.parametrize("format", [f for f in aionap.serialize.SERIALIZERS])
-async def test_post_data(httpbin, format):
+async def test_send_data(httpbin, format, http_send_method):
     data = {'foo': 'bar'}
     serializer = aionap.serialize.Serializer().get_serializer(name=format)
     api = aionap.API(httpbin.url, format=format)
-    async with api.post as resource:
-        resp = await resource.post(data=data)
+    async with getattr(api, http_send_method) as resource:
+        resp = await getattr(resource, http_send_method)(data=data)
         assert format in resp['headers'].get('Accept')
         assert format in resp['headers'].get('Content-Type')
         assert serializer.dumps(data) == resp['data']
