@@ -175,12 +175,14 @@ class API(AttributesMixin):
 
     resource_class = Resource
 
-    def __init__(self, base_url=None, auth=None, format=None, append_slash=False, session=None, serializer=None, raw=False):
+    def __init__(self, base_url=None, auth=None, format=None, append_slash=False, session=None, serializer=None, raw=False, session_kwargs=None):
         """Init."""
         if serializer is None:
             serializer = Serializer(default=format)
 
-        session_kwargs = {}
+        if not session_kwargs:
+            session_kwargs = {}
+
         if auth is not None:
             session_kwargs['auth'] = aiohttp.BasicAuth(*auth)
 
