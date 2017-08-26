@@ -1,0 +1,20 @@
+language: python
+sudo: false
+env:
+  - TOXENV=py36
+
+install:
+  - travis_retry pip install tox
+
+script:
+  - tox -- -sv
+
+deploy:
+  provider: pypi
+  user: chassing
+  password:
+    secure: mTnrIsWCUZzPtCuk/rg+KYhMWCaHAjPe+tm2aAg6QYCY/OU8i8Au/cIwONa3JBDkQrB/NZa7gaOuxVMgcmaPEBcgzqhg2Er4wsi7voS/yn5suZ4ulIsYfxOB0+3i08jCA15IqXCaCJvfiE2j3AG6e8gs8QUTbciiLwZHdJyRE21HCI6d4cPIUa79FTAw0cgY/CHi4Bm8oCy3huZYgwrD6/X2JfZhYLwJBHkQaW9zBOhYGz31QLwDYYIIw19YcgDzkp+xXq0nIhfRanJgpRpS7U937ugO8bksNaQTq9NW6j8KFrHDwXQlE4q/J5XNqvOdoCAR6VE8/kbP67mgSG1ix7V8NmVP8aPJmm6cjiU9blJGrponuokIZqzFPUf3FETQ6uaJ69RgEALc/iisr7EyDmNzWhGJyz7D0oWh0SbZc8caQhl000wHA0pIKCd0ygVeZMmeNCpayMX5xucJcYhGbLoj61yttI/VoooRiMxwPKqYIMM/1ePqcruNpehAa+7kUxXR5iTN3Ep2xHG7fNduCL2fy47u7NW3yPZIi3r5dEHYLXwHLsI4oCCm4xkUXzakiGeY1FApO3k98LCEaj6kW2P0ykZf/hAJ7P+d6igN/vSo4hh3VtEnwhsDBIUDQ7+2pZ64tnwBWS20aVTjaDJGfuqPeoiQv0Jjurl1ZoETt3Y=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: chassing/aionap
