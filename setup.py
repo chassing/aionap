@@ -1,4 +1,9 @@
 import setuptools
+import sys
+
+if sys.version_info < (3, 6, 0):
+    raise RuntimeError("aiohttp requires Python 3.6.0+")
+
 
 setuptools.setup(
     name="aionap",
