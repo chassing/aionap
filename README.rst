@@ -83,7 +83,7 @@ TODO
 ----
 
 * OAuth support
-* Readthedocs API documenation
+* Readthedocs API documentation (SSL_CERT_FILE)
 
 
 Compatibility
