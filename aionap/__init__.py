@@ -73,22 +73,25 @@ class Resource(AttributesMixin):
         """Asyncio with exit."""
         self._store["session"].close()
 
-    async def _request(self, method, data=None, file=None, params=None):
+    async def _request(self, method, data=None, file=None, headers=None, params=None):
         serializer = self._store["serializer"]
         url = self.url
 
-        headers = {"accept": serializer.get_content_type()}
+        _headers = {"accept": serializer.get_content_type()}
 
         if not file:
             if data is not None:
-                headers["content-type"] = serializer.get_content_type()
+                _headers["content-type"] = serializer.get_content_type()
                 data = serializer.dumps(data)
         else:
             if data is None:
                 data = {}
             data['file'] = file
 
-        resp = await self._store["session"].request(method, url, data=data, params=params, headers=headers)
+        if headers:
+            _headers.update(headers)
+
+        resp = await self._store["session"].request(method, url, data=data, params=params, headers=_headers)
         self._ = resp
 
         if 400 <= resp.status <= 499:
@@ -129,8 +132,8 @@ class Resource(AttributesMixin):
 
         return decoded
 
-    async def _do_verb_request(self, verb, data=None, file=None, params=None):
-        resp = await self._request(verb, data=data, file=file, params=transform_url_parameters(params))
+    async def _do_verb_request(self, verb, data=None, file=None, headers=None, params=None):
+        resp = await self._request(verb, data=data, file=file, headers=headers, params=transform_url_parameters(params))
         return await self._process_response(resp)
 
     def as_raw(self):
@@ -138,28 +141,28 @@ class Resource(AttributesMixin):
         self._store["raw"] = True
         return self
 
-    async def get(self, **kwargs):
+    async def get(self, headers=None, **kwargs):
         """GET request."""
-        return await self._do_verb_request("GET", params=kwargs)
+        return await self._do_verb_request("GET", headers=headers, params=kwargs)
 
-    async def post(self, data=None, file=None, **kwargs):
+    async def post(self, data=None, file=None, headers=None, **kwargs):
         """POST.
 
         file: file-like object
         """
-        return await self._do_verb_request("POST", data=data, file=file, params=kwargs)
+        return await self._do_verb_request("POST", data=data, file=file, headers=headers, params=kwargs)
 
-    async def patch(self, data=None, file=None, **kwargs):
+    async def patch(self, data=None, file=None, headers=None, **kwargs):
         """PATCH."""
-        return await self._do_verb_request("PATCH", data=data, file=file, params=kwargs)
+        return await self._do_verb_request("PATCH", data=data, file=file, headers=headers, params=kwargs)
 
-    async def put(self, data=None, file=None, **kwargs):
+    async def put(self, data=None, file=None, headers=None, **kwargs):
         """PUT."""
-        return await self._do_verb_request("PUT", data=data, file=file, params=kwargs)
+        return await self._do_verb_request("PUT", data=data, file=file, headers=headers, params=kwargs)
 
-    async def delete(self, **kwargs):
+    async def delete(self, headers=None, **kwargs):
         """DELETE."""
-        return await self._do_verb_request("DELETE", params=kwargs)
+        return await self._do_verb_request("DELETE", headers=headers, params=kwargs)
 
     # async def options(self, **kwargs):
     #     return await self._do_verb_request("OPTIONS", params=kwargs)

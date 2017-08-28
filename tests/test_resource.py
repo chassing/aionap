@@ -148,3 +148,17 @@ async def test_send_files(httpbin, tmpdir, http_send_method):
     async with getattr(api, http_send_method) as resource:
         resp = await getattr(resource, http_send_method)(file=open(tmpfile, 'rb'))
         assert TEST_STR == resp['files']['file']
+
+
+async def test_headers(httpbin, http_method):
+    api = aionap.API(httpbin.url)
+    async with getattr(api, http_method) as resource:
+        resp = await getattr(resource, http_method)(headers={'X-Answer': '42'})
+        assert resp['headers']['X-Answer'] == '42'
+
+
+async def test_custom_content_type(httpbin, http_method):
+    api = aionap.API(httpbin.url)
+    async with getattr(api, http_method) as resource:
+        resp = await getattr(resource, http_method)(headers={'content-type': 'application/foobar'})
+        assert resp['headers']['Content-Type'] == 'application/foobar'
