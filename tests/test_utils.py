@@ -51,3 +51,25 @@ import aionap.utils
 ])
 def test_urljoin(urljoin_args, expected):
     assert aionap.utils.urljoin(*urljoin_args) == expected
+
+
+@pytest.mark.parametrize("params, expected", [
+    # empty
+    ({}, []),
+    ([], []),
+    # no lists
+    ({'key1': 'value1'}, [('key1', 'value1')]),
+    ({'key1': 'value1', 'key2': 'value2'}, [('key1', 'value1'), ('key2', 'value2')]),
+    # just lists
+    ({'key1': ['value1']}, [('key1', 'value1')]),
+    ({'key1': ['value1', 'value2']}, [('key1', 'value1'), ('key1', 'value2')]),
+    ({'key1': ['value1'], 'key2': ['value2']}, [('key1', 'value1'), ('key2', 'value2')]),
+    ({'key1': ['value1', 'value2'], 'key2': ['value1', 'value2']}, [('key1', 'value1'), ('key1', 'value2'), ('key2', 'value1'), ('key2', 'value2')]),
+    # mixed
+    ({'key1': ['value1'], 'd': 'v'}, [('key1', 'value1'), ('d', 'v')]),
+    ({'key1': ['value1', 'value2'], 'd': 'v'}, [('key1', 'value1'), ('key1', 'value2'), ('d', 'v')]),
+    ({'key1': ['value1'], 'key2': ['value2'], 'd': 'v'}, [('key1', 'value1'), ('key2', 'value2'), ('d', 'v')]),
+    ({'key1': ['value1', 'value2'], 'key2': ['value1', 'value2'], 'd': 'v'}, [('key1', 'value1'), ('key1', 'value2'), ('key2', 'value1'), ('key2', 'value2'), ('d', 'v')]),
+])
+def test_transform_url_parameters(params, expected):
+    assert sorted(aionap.utils.transform_url_parameters(params)) == sorted(expected)

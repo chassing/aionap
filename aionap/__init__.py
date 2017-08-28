@@ -3,7 +3,7 @@ import aiohttp
 
 from . import exceptions
 from .serialize import Serializer
-from .utils import urljoin
+from .utils import transform_url_parameters, urljoin
 
 
 __all__ = ["Resource", "API"]
@@ -130,10 +130,11 @@ class Resource(AttributesMixin):
         return decoded
 
     async def _do_verb_request(self, verb, data=None, file=None, params=None):
-        resp = await self._request(verb, data=data, file=file, params=params)
+        resp = await self._request(verb, data=data, file=file, params=transform_url_parameters(params))
         return await self._process_response(resp)
 
     def as_raw(self):
+        """."""
         self._store["raw"] = True
         return self
 
@@ -149,12 +150,15 @@ class Resource(AttributesMixin):
         return await self._do_verb_request("POST", data=data, file=file, params=kwargs)
 
     async def patch(self, data=None, file=None, **kwargs):
+        """PATCH."""
         return await self._do_verb_request("PATCH", data=data, file=file, params=kwargs)
 
     async def put(self, data=None, file=None, **kwargs):
+        """PUT."""
         return await self._do_verb_request("PUT", data=data, file=file, params=kwargs)
 
     async def delete(self, **kwargs):
+        """DELETE."""
         return await self._do_verb_request("DELETE", params=kwargs)
 
     # async def options(self, **kwargs):
@@ -211,6 +215,7 @@ class API(AttributesMixin):
             raise exceptions.ImproperlyConfigured("base_url is required")
 
     async def close(self):
+        """Close underlying session."""
         await self._store['session'].close()
 
     def _get_resource(self, **kwargs):
