@@ -96,9 +96,9 @@ class Resource(AttributesMixin):
 
         if 400 <= resp.status <= 499:
             exception_class = exceptions.HttpNotFoundError if resp.status == 404 else exceptions.HttpClientError
-            raise exception_class("Client Error %s: %s" % (resp.status, url), response=resp, content=resp.content)
+            raise exception_class("Client Error %s: %s" % (resp.status, url), response=resp, content=await self._try_to_serialize_response(resp))
         elif 500 <= resp.status <= 599:
-            raise exceptions.HttpServerError("Server Error %s: %s" % (resp.status, url), response=resp, content=resp.content)
+            raise exceptions.HttpServerError("Server Error %s: %s" % (resp.status, url), response=resp, content=await self._try_to_serialize_response(resp))
 
         return resp
 

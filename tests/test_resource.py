@@ -118,11 +118,16 @@ async def test_all_http_status_codes(httpbin, code):
                 # httpbin std redirect is to /get
                 assert resp['url'].endswith('/get')
         elif 400 <= code <= 499:
-            with pytest.raises((aionap.exceptions.HttpClientError, aionap.exceptions.HttpNotFoundError)):
+            with pytest.raises((aionap.exceptions.HttpClientError, aionap.exceptions.HttpNotFoundError)) as excinfo:
                 await resource.get()
+            if code == 402:
+                assert len(excinfo.value.content) > 0
+            else:
+                assert excinfo.value.content == b''
         elif 500 <= code <= 599:
-            with pytest.raises(aionap.exceptions.HttpServerError):
+            with pytest.raises(aionap.exceptions.HttpServerError) as excinfo:
                 await resource.get()
+            assert excinfo.value.content == b''
         else:
             await resource.get()
         assert resource._.status == code
