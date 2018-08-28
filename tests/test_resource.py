@@ -22,8 +22,8 @@ def http_send_method(request):
 
 async def test_plain_methods(httpbin, http_method):
     """Just the plain http methods without data, params etc."""
-    api = aionap.API(httpbin.url, append_slash=False)
-    async with api.anything as resource:
+    async with aionap.API(httpbin.url, append_slash=False) as api:
+        resource = api.anything
         # resource.get()
         resp = await getattr(resource, http_method)()
         assert resp['method'] == http_method.upper()
@@ -31,17 +31,17 @@ async def test_plain_methods(httpbin, http_method):
 
 async def test_params(httpbin, http_method):
     """Just the plain http methods without data, params etc."""
-    api = aionap.API(httpbin.url, append_slash=False)
-    params = {'key': 'value', 'key2': 'value2'}
-    async with api.anything as resource:
+    async with aionap.API(httpbin.url, append_slash=False) as api:
+        params = {'key': 'value', 'key2': 'value2'}
+        resource = api.anything
         resp = await getattr(resource, http_method)(**params)
         assert resp['args'] == params
 
 
 async def test_deep_nested_resource_urls(httpbin):
     """Test _get_resource and __call__."""
-    api = aionap.API(httpbin.url)
-    async with api.anything.deep.nested.resource.urls as resource:
+    async with aionap.API(httpbin.url) as api:
+        resource = api.anything.deep.nested.resource.urls
         resp = await resource.get()
         assert resp['method'] == 'GET'
         assert resp['url'].endswith('deep/nested/resource/urls')
@@ -49,16 +49,16 @@ async def test_deep_nested_resource_urls(httpbin):
 
 async def test_deep_nested_resource_urls_with_ids(httpbin):
     """Test _get_resource and __call__."""
-    api = aionap.API(httpbin.url)
-    async with api.anything.deep(1).nested(1).resource(1).urls(1) as resource:
+    async with aionap.API(httpbin.url) as api:
+        resource = api.anything.deep(1).nested(1).resource(1).urls(1)
         resp = await resource.get()
         assert resp['url'].endswith('/deep/1/nested/1/resource/1/urls/1')
 
 
 async def test_deep_nested_resource_urls_with_name(httpbin):
     """Test _get_resource and __call__."""
-    api = aionap.API(httpbin.url)
-    async with api.anything.deep("name").nested("name").resource("name").urls("name") as resource:
+    async with aionap.API(httpbin.url) as api:
+        resource = api.anything.deep("name").nested("name").resource("name").urls("name")
         resp = await resource.get()
         assert resp['url'].endswith('/deep/name/nested/name/resource/name/urls/name')
 
@@ -69,27 +69,24 @@ async def test_close(httpbin):
     # should raise closed exception
     with pytest.raises(RuntimeError):
         await api.anything.resource.get()
-    with pytest.raises(RuntimeError):
-        async with api.anything as resource:
-            await resource.get()
 
 
 async def test_append_slash(httpbin):
-    api = aionap.API(httpbin.url, append_slash=True)
-    async with api.anything.whatever as resource:
+    async with aionap.API(httpbin.url, append_slash=True) as api:
+        resource = api.anything.whatever
         resp = await resource.get()
     assert resp['url'].endswith('/')
 
 
 async def test_no_append_slash(httpbin):
-    api = aionap.API(httpbin.url, append_slash=False)
-    async with api.anything.whatever as resource:
+    async with aionap.API(httpbin.url, append_slash=False) as api:
+        resource = api.anything.whatever
         resp = await resource.get()
         assert not resp['url'].endswith('/')
 
 async def test_default_no_append_slash(httpbin):
-    api = aionap.API(httpbin.url)
-    async with api.anything.whatever as resource:
+    async with aionap.API(httpbin.url) as api:
+        resource = api.anything.whatever
         resp = await resource.get()
         assert not resp['url'].endswith('/')
 
@@ -108,8 +105,8 @@ async def test_default_no_append_slash(httpbin):
 ])
 async def test_all_http_status_codes(httpbin, code):
     """Just the plain http methods without data, params etc."""
-    api = aionap.API(httpbin.url)
-    async with api.status(code) as resource:
+    async with aionap.API(httpbin.url) as api:
+        resource = api.status(code)
         if 300 <= code <= 399:
             resp = await resource.get()
             if code not in [300, 304]:
@@ -136,8 +133,8 @@ async def test_all_http_status_codes(httpbin, code):
 async def test_send_data(httpbin, format, http_send_method):
     data = {'foo': 'bar'}
     serializer = aionap.serialize.Serializer().get_serializer(name=format)
-    api = aionap.API(httpbin.url, format=format)
-    async with getattr(api, http_send_method) as resource:
+    async with aionap.API(httpbin.url, format=format) as api:
+        resource = getattr(api, http_send_method)
         resp = await getattr(resource, http_send_method)(data=data)
         assert format in resp['headers'].get('Accept')
         assert format in resp['headers'].get('Content-Type')
@@ -149,21 +146,22 @@ async def test_send_files(httpbin, tmpdir, http_send_method):
     TEST_STR = "TEST TEST TEST"
     tmpfile = tmpdir.join("tmp.txt")
     tmpfile.write(TEST_STR)
-    api = aionap.API(httpbin.url)
-    async with getattr(api, http_send_method) as resource:
+    async with aionap.API(httpbin.url) as api:
+        resource = getattr(api, http_send_method)
         resp = await getattr(resource, http_send_method)(file=open(tmpfile, 'rb'))
         assert TEST_STR == resp['files']['file']
 
 
 async def test_headers(httpbin, http_method):
-    api = aionap.API(httpbin.url)
-    async with getattr(api, http_method) as resource:
+    async with aionap.API(httpbin.url) as api:
+        resource = getattr(api, http_method)
         resp = await getattr(resource, http_method)(headers={'X-Answer': '42'})
         assert resp['headers']['X-Answer'] == '42'
 
 
 async def test_custom_content_type(httpbin, http_method):
-    api = aionap.API(httpbin.url)
-    async with getattr(api, http_method) as resource:
+    async with aionap.API(httpbin.url) as api:
+        resource = getattr(api, http_method)
         resp = await getattr(resource, http_method)(headers={'content-type': 'application/foobar'})
         assert resp['headers']['Content-Type'] == 'application/foobar'
+

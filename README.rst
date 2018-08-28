@@ -34,20 +34,13 @@ QuickStart
 Usage
 -----
 
-* Get an API object
+* Get an API object and fetch a url/resource (e.g. https://demo.api-platform.com/books)
 
 .. code-block:: python
 
     import aionap
-    api = aionap.API('https://demo.api-platform.com')
-
-
-* Fetch a url/resource (e.g. https://demo.api-platform.com/books)
-
-.. code-block:: python
-
-    async with api.books as resource:
-        response = await resource.get()
+    async with aionap.API('https://demo.api-platform.com') as api
+        response = await api.books.get()
 
 For more see the documenation_, the `test/test_demo_api.py` file or the `example` directory.
 

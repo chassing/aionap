@@ -15,9 +15,10 @@ import aionap  # noqa
 
 
 async def main():
-    demo = aionap.API('https://jsonplaceholder.typicode.com')
-    async with demo.users as resource:
-        users = await resource.get()
+    # Create a resource for the API
+    async with aionap.API('https://jsonplaceholder.typicode.com') as demo:
+        # Send a GET request to https://jsonplaceholder.typicode.com/users
+        users = await demo.users.get()
 
     print(f"In total {len(users)} users:")
     for user in users:
