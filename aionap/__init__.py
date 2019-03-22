@@ -65,14 +65,6 @@ class Resource(AttributesMixin):
 
         return self._get_resource(**kwargs)
 
-    async def __aenter__(self):
-        """Asyncio with enter."""
-        return self
-
-    async def __aexit__(self, exc_type, exc, tb):
-        """Asyncio with exit."""
-        self._store["session"].close()
-
     async def _request(self, method, data=None, file=None, headers=None, params=None):
         serializer = self._store["serializer"]
         url = self.url
@@ -216,6 +208,14 @@ class API(AttributesMixin):
         # Do some Checks for Required Values
         if self._store.get("base_url") is None:
             raise exceptions.ImproperlyConfigured("base_url is required")
+
+    async def __aenter__(self):
+        """Asyncio with enter."""
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        """Asyncio with exit."""
+        await self.close()
 
     async def close(self):
         """Close underlying session."""
