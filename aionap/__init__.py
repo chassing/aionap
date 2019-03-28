@@ -100,8 +100,8 @@ class Resource(AttributesMixin):
             return
 
         content = await resp.read()
-        if resp.headers.get("content-type", None) and content:
-            content_type = resp.headers.get("content-type").split(";")[0].strip()
+        if resp.headers.get("Content-Type", None) and content:
+            content_type = resp.headers.get("Content-Type").split(";")[0].strip()
 
             try:
                 # get serializer
