@@ -7,7 +7,7 @@ if sys.version_info < (3, 6, 0):
 
 setuptools.setup(
     name="aionap",
-    version="0.5",
+    version="0.6",
     url="https://github.com/chassing/aionap",
 
     author="Christian Assing",
