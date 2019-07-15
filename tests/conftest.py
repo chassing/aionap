@@ -1,4 +1,3 @@
-
 import collections
 import contextlib
 import pytest
@@ -19,7 +18,8 @@ class Url(str):
 
     __truediv__ = __div__
 
-Server = collections.namedtuple('Server', ['url', 'host', 'port'])
+
+Server = collections.namedtuple("Server", ["url", "host", "port"])
 
 
 def wait_for_httpbin(url):
@@ -38,15 +38,15 @@ def wait_for_httpbin(url):
     raise Exception("httpbin server not reachable!!!")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def tcp_port():
     """Find an unused localhost TCP port from 1024-65535 and return it."""
     with contextlib.closing(socket.socket()) as sock:
-        sock.bind(('127.0.0.1', 0))
+        sock.bind(("127.0.0.1", 0))
         return sock.getsockname()[1]
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.yield_fixture(scope="session")
 def httpbin(tcp_port):
     httpbin_cmd = f"gunicorn httpbin:app --bind 127.0.0.1:{tcp_port} --log-level DEBUG"
     httpbin_proc = subprocess.Popen(httpbin_cmd.split(" "))
@@ -59,6 +59,7 @@ def httpbin(tcp_port):
     yield Server(url, host, port)
     # kill httpbin
     httpbin_proc.kill()
+
 
 # @pytest.fixture(scope='session')
 # def httpbin(tcp_port):

@@ -1,4 +1,3 @@
-
 import aiohttp
 
 from . import exceptions
@@ -78,19 +77,29 @@ class Resource(AttributesMixin):
         else:
             if data is None:
                 data = {}
-            data['file'] = file
+            data["file"] = file
 
         if headers:
             _headers.update(headers)
 
-        resp = await self._store["session"].request(method, url, data=data, params=params, headers=_headers)
+        resp = await self._store["session"].request(
+            method, url, data=data, params=params, headers=_headers, **self._store["request_kwargs"]
+        )
         self._ = resp
 
         if 400 <= resp.status <= 499:
             exception_class = exceptions.HttpNotFoundError if resp.status == 404 else exceptions.HttpClientError
-            raise exception_class("Client Error %s: %s" % (resp.status, url), response=resp, content=await self._try_to_serialize_response(resp))
+            raise exception_class(
+                "Client Error %s: %s" % (resp.status, url),
+                response=resp,
+                content=await self._try_to_serialize_response(resp),
+            )
         elif 500 <= resp.status <= 599:
-            raise exceptions.HttpServerError("Server Error %s: %s" % (resp.status, url), response=resp, content=await self._try_to_serialize_response(resp))
+            raise exceptions.HttpServerError(
+                "Server Error %s: %s" % (resp.status, url),
+                response=resp,
+                content=await self._try_to_serialize_response(resp),
+            )
 
         return resp
 
@@ -181,7 +190,18 @@ class API(AttributesMixin):
 
     resource_class = Resource
 
-    def __init__(self, base_url=None, auth=None, format=None, append_slash=False, session=None, serializer=None, raw=False, session_kwargs=None):
+    def __init__(
+        self,
+        base_url=None,
+        auth=None,
+        format=None,
+        append_slash=False,
+        session=None,
+        serializer=None,
+        raw=False,
+        session_kwargs=None,
+        request_kwargs=None,
+    ):
         """Init."""
         if serializer is None:
             serializer = Serializer(default=format)
@@ -190,7 +210,7 @@ class API(AttributesMixin):
             session_kwargs = {}
 
         if auth is not None:
-            session_kwargs['auth'] = aiohttp.BasicAuth(*auth)
+            session_kwargs["auth"] = aiohttp.BasicAuth(*auth)
 
         if session is None:
             session = aiohttp.ClientSession(**session_kwargs)
@@ -203,6 +223,7 @@ class API(AttributesMixin):
             "session": session,
             "serializer": serializer,
             "raw": raw,
+            "request_kwargs": request_kwargs or {},
         }
 
         # Do some Checks for Required Values
@@ -219,7 +240,7 @@ class API(AttributesMixin):
 
     async def close(self):
         """Close underlying session."""
-        await self._store['session'].close()
+        await self._store["session"].close()
 
     def _get_resource(self, **kwargs):
         return self.resource_class(**kwargs)
